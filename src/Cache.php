@@ -143,7 +143,7 @@ class Cache implements CacheInterface
         foreach ($values as $key => $value) {
             $res &= $this->set($key, $value, $ttl);
         }
-        return $res;
+        return (bool) $res;
     }
 
     /**
@@ -155,7 +155,7 @@ class Cache implements CacheInterface
         foreach ($keys as $key) {
             $res &= $this->delete($key);
         }
-        return $res;
+        return (bool) $res;
     }
 
     /**
