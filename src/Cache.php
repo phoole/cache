@@ -14,6 +14,7 @@ namespace Phoole\Cache;
 use Psr\SimpleCache\CacheInterface;
 use Phoole\Cache\Adaptor\AdaptorInterface;
 use Psr\SimpleCache\InvalidArgumentException;
+use Phoole\Base\Exception\NotFoundException;
 
 /**
  * Cache
@@ -80,13 +81,18 @@ class Cache implements CacheInterface
      */
     public function get($key, $default = null)
     {
-        // explicitly bypass the cache
+        // bypass the cache
         if ($this->byPass) {
             return $default;
         }
 
         $key = $this->checkKey($key);
-        list($res, $time) = $this->adaptor->get($key);
+
+        try {
+            list($res, $time) = $this->adaptor->get($key);
+        } catch (NotFoundException $e) {
+            return $default;
+        }
 
         if ($this->checkTime($time)) {
             return $this->unSerialize($res);
