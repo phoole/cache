@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace Phoole\Tests;
 
-use PHPUnit\Framework\TestCase;
 use Phoole\Cache\Cache;
+use PHPUnit\Framework\TestCase;
 use Phoole\Cache\Adaptor\FileAdaptor;
 
 class CacheTest extends TestCase
 {
     private $adaptor;
+
     private $obj;
+
     private $ref;
 
     protected function setUp(): void
@@ -25,14 +27,14 @@ class CacheTest extends TestCase
     protected function tearDown(): void
     {
         $this->adaptor->clear();
-        $this->obj = $this->ref = null;
+        $this->obj = $this->ref = NULL;
         parent::tearDown();
     }
 
     protected function invokeMethod($methodName, array $parameters = array())
     {
         $method = $this->ref->getMethod($methodName);
-        $method->setAccessible(true);
+        $method->setAccessible(TRUE);
         return $method->invokeArgs($this->obj, $parameters);
     }
 
@@ -42,7 +44,7 @@ class CacheTest extends TestCase
     public function testGet()
     {
         // not exist
-        $this->assertTrue(null === $this->obj->get('bingo'));
+        $this->assertTrue(NULL === $this->obj->get('bingo'));
 
         // default value
         $this->assertTrue('default' === $this->obj->get('bingo', 'default'));
@@ -59,7 +61,7 @@ class CacheTest extends TestCase
     {
         // set & expired
         $this->obj->set('bingo', 'wow', -86400);
-        $this->assertTrue(null === $this->obj->get('bingo'));
+        $this->assertTrue(NULL === $this->obj->get('bingo'));
 
         // set different data type
         $data = ['a', 'b'];
@@ -79,7 +81,7 @@ class CacheTest extends TestCase
         $this->obj->set('bingo', 'bingo');
         $this->assertTrue('bingo' === $this->obj->get('bingo'));
         $this->assertTrue($this->obj->delete('bingo'));
-        $this->assertTrue(null === $this->obj->get('bingo'));
+        $this->assertTrue(NULL === $this->obj->get('bingo'));
     }
 
     /**
@@ -89,12 +91,12 @@ class CacheTest extends TestCase
     {
         $this->obj->set('wow', 'wow');
         $this->obj->set('bingo', 'bingo');
-        
+
         $this->assertTrue('wow' === $this->obj->get('wow'));
         $this->obj->clear();
 
-        $this->assertTrue(null === $this->obj->get('wow'));
-        $this->assertTrue(null === $this->obj->get('bingo'));
+        $this->assertTrue(NULL === $this->obj->get('wow'));
+        $this->assertTrue(NULL === $this->obj->get('bingo'));
     }
 
     /**
@@ -104,7 +106,7 @@ class CacheTest extends TestCase
     {
         $this->obj->set('wow', 'wow');
         $this->obj->set('bingo', 'wow');
-        
+
         // normal
         $this->assertEquals(
             ['wow' => 'wow', 'bingo' => 'wow'],
@@ -115,7 +117,7 @@ class CacheTest extends TestCase
 
         // null
         $this->assertEquals(
-            ['wow' => null, 'bingo' => null],
+            ['wow' => NULL, 'bingo' => NULL],
             $this->obj->getMultiple(['wow', 'bingo'])
         );
 
@@ -183,10 +185,10 @@ class CacheTest extends TestCase
     {
         $this->obj->set('bingo', 'bingo');
         $this->assertTrue($this->obj->has('bingo'));
-        $this->obj->setByPass(true);
+        $this->obj->setByPass(TRUE);
         $this->assertFalse($this->obj->has('bingo'));
 
-        $this->obj->setByPass(false);
+        $this->obj->setByPass(FALSE);
         $this->assertTrue($this->obj->has('bingo'));
     }
 
@@ -223,7 +225,7 @@ class CacheTest extends TestCase
     public function testGetTTL()
     {
         // default TTL
-        $val = $this->invokeMethod('getTTL', [null]);
+        $val = $this->invokeMethod('getTTL', [NULL]);
         $this->assertTrue(abs(86400 - $val) <= 86400 * 0.055);
 
         // set time

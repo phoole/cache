@@ -21,8 +21,8 @@ use Phoole\Base\Storage\Filesystem;
 class FileAdaptor extends Filesystem implements AdaptorInterface
 {
     /**
-     * @param string $rootPath   the cache directory
-     * @param int    $hashLevel  directory hash depth
+     * @param  string $rootPath   the cache directory
+     * @param  int    $hashLevel  directory hash depth
      * @throws       \RuntimeException  if mkdir failed
      */
     public function __construct(

@@ -10,7 +10,9 @@ use Phoole\Cache\Adaptor\FileAdaptor;
 class FileAdaptorTest extends TestCase
 {
     private $adaptor;
+
     private $obj;
+
     private $ref;
 
     protected function setUp(): void
@@ -23,14 +25,14 @@ class FileAdaptorTest extends TestCase
     protected function tearDown(): void
     {
         $this->obj->clear();
-        $this->obj = $this->ref = null;
+        $this->obj = $this->ref = NULL;
         parent::tearDown();
     }
 
     protected function invokeMethod($methodName, array $parameters = array())
     {
         $method = $this->ref->getMethod($methodName);
-        $method->setAccessible(true);
+        $method->setAccessible(TRUE);
         return $method->invokeArgs($this->obj, $parameters);
     }
 
@@ -39,6 +41,6 @@ class FileAdaptorTest extends TestCase
      */
     public function testGet()
     {
-        $this->assertTrue(true);
+        $this->assertTrue(TRUE);
     }
 }

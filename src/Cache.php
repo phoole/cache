@@ -13,8 +13,8 @@ namespace Phoole\Cache;
 
 use Psr\SimpleCache\CacheInterface;
 use Phoole\Cache\Adaptor\AdaptorInterface;
-use Psr\SimpleCache\InvalidArgumentException;
 use Phoole\Base\Exception\NotFoundException;
+use Psr\SimpleCache\InvalidArgumentException;
 
 /**
  * Cache
@@ -29,9 +29,11 @@ class Cache implements CacheInterface
     protected $adaptor;
 
     /**
+     * bypass the cache switch
+     *
      * @var bool
      */
-    protected $byPass = false;
+    protected $byPass = FALSE;
 
     /**
      * default TTL
@@ -59,10 +61,10 @@ class Cache implements CacheInterface
     protected $stampedeGap;
 
     /**
-     * @param AdaptorInterface $adaptor
-     * @param int $defaultTTL              86400 sec (one day)
-     * @param int $distributedExpiration   0 - 5(%)
-     * @param int $stampedeGap             0 - 60 sec
+     * @param  AdaptorInterface $adaptor
+     * @param  int              $defaultTTL             86400 sec (one day)
+     * @param  int              $distributedExpiration  0 - 5(%)
+     * @param  int              $stampedeGap            0 - 60 sec
      */
     public function __construct(
         AdaptorInterface $adaptor,
@@ -79,36 +81,41 @@ class Cache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function get($key, $default = null)
+    public function get($key, $default = NULL)
     {
         // bypass the cache
         if ($this->byPass) {
             return $default;
         }
 
+        // verify the key first
         $key = $this->checkKey($key);
 
+        // try read using adaptor
         try {
             list($res, $time) = $this->adaptor->get($key);
         } catch (NotFoundException $e) {
             return $default;
         }
 
+        // verify expiration time
         if ($this->checkTime($time)) {
             return $this->unSerialize($res);
         }
+
+        // default
         return $default;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function set($key, $value, $ttl = null)
+    public function set($key, $value, $ttl = NULL)
     {
         $ttl = $this->getTTL($ttl);
         $key = $this->checkKey($key);
         $val = $this->serialize($value);
-        return $value ? $this->adaptor->set($key, $val, $ttl) : false;
+        return $value ? $this->adaptor->set($key, $val, $ttl) : FALSE;
     }
 
     /**
@@ -131,7 +138,7 @@ class Cache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function getMultiple($keys, $default = null)
+    public function getMultiple($keys, $default = NULL)
     {
         $result = [];
         foreach ($keys as $key) {
@@ -143,9 +150,9 @@ class Cache implements CacheInterface
     /**
      * {@inheritDoc}
      */
-    public function setMultiple($values, $ttl = null)
+    public function setMultiple($values, $ttl = NULL)
     {
-        $res = true;
+        $res = TRUE;
         foreach ($values as $key => $value) {
             $res &= $this->set($key, $value, $ttl);
         }
@@ -157,7 +164,7 @@ class Cache implements CacheInterface
      */
     public function deleteMultiple($keys)
     {
-        $res = true;
+        $res = TRUE;
         foreach ($keys as $key) {
             $res &= $this->delete($key);
         }
@@ -169,14 +176,14 @@ class Cache implements CacheInterface
      */
     public function has($key)
     {
-        return null !== $this->get($key);
+        return NULL !== $this->get($key);
     }
 
     /**
-     * @param  bool $bypass   explicitly bypass the cache
+     * @param  bool $bypass  explicitly bypass the cache
      * @return void
      */
-    public function setByPass(bool $bypass = true)
+    public function setByPass(bool $bypass = TRUE)
     {
         $this->byPass = $bypass;
     }
@@ -193,7 +200,10 @@ class Cache implements CacheInterface
         try {
             return (string) $key;
         } catch (\Throwable $e) {
-            throw new class ($e->getMessage()) extends \InvalidArgumentException implements InvalidArgumentException {
+            throw new class ($e->getMessage())
+                extends \InvalidArgumentException
+                implements InvalidArgumentException
+            {
             };
         }
     }
@@ -210,9 +220,9 @@ class Cache implements CacheInterface
 
         // not expired
         if ($time > $now) {
-            return true;
+            return TRUE;
         }
-        
+
         // just expired
         if ($time > $now - $this->stampedeGap) {
             // 5% chance expired (need rebuild cache)
@@ -220,7 +230,7 @@ class Cache implements CacheInterface
         }
 
         // expired
-        return false;
+        return FALSE;
     }
 
     /**
