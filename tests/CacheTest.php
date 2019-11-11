@@ -187,7 +187,7 @@ class CacheTest extends TestCase
         $this->assertEquals($key, $this->invokeMethod('checkKey', [$key]));
 
         $key = ['a'];
-        $this->expectExceptionMessage('Array to string');
+        $this->expectExceptionMessage('non-valid key');
         $this->assertEquals($key, $this->invokeMethod('checkKey', [$key]));
     }
 

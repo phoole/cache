@@ -158,11 +158,10 @@ class Cache implements CacheInterface
      */
     protected function checkKey($key): string
     {
-        try {
-            return (string) $key;
-        } catch (\Throwable $e) {
-            throw new InvalidArgumentException($e->getMessage());
+        if (!\is_scalar($key)) {
+            throw new InvalidArgumentException('non-valid key found');
         }
+        return (string) $key;
     }
 
     /**
