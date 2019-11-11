@@ -179,20 +179,6 @@ class CacheTest extends TestCase
     }
 
     /**
-     * @covers Phoole\Cache\Cache::byPass()
-     */
-    public function testSetByPass()
-    {
-        $this->obj->set('bingo', 'bingo');
-        $this->assertTrue($this->obj->has('bingo'));
-        $this->obj->setByPass(TRUE);
-        $this->assertFalse($this->obj->has('bingo'));
-
-        $this->obj->setByPass(FALSE);
-        $this->assertTrue($this->obj->has('bingo'));
-    }
-
-    /**
      * @covers Phoole\Cache\Cache::checkKey()
      */
     public function testCheckKey()

@@ -12,9 +12,11 @@ declare(strict_types=1);
 namespace Phoole\Cache;
 
 use Psr\SimpleCache\CacheInterface;
+use Phoole\Cache\Adaptor\FileAdaptor;
 use Phoole\Cache\Adaptor\AdaptorInterface;
-use Phoole\Base\Exception\NotFoundException;
-use Psr\SimpleCache\InvalidArgumentException;
+use Phoole\Cache\Exception\NotFoundException;
+use Phoole\Cache\Exception\InvalidArgumentException;
+use Phoole\Base\Exception\NotFoundException as PhooleNotFoundException;
 
 /**
  * Cache
@@ -29,53 +31,27 @@ class Cache implements CacheInterface
     protected $adaptor;
 
     /**
-     * bypass the cache switch
-     *
-     * @var bool
+     * @var array
      */
-    protected $byPass = FALSE;
+    protected $settings = [
+        'defaultTTL' => 86400,     // default TTL 86400 seconds
+        'stampedeGap' => 60,        // 0-120 seconds
+        'stampedePercent' => 5,     // 5% chance considered stale
+        'distributedPercent' => 5,  // 5% fluctuation of expiration time
+    ];
 
     /**
-     * default TTL
+     * Inject adaptor and settings
      *
-     * @var int
-     */
-    protected $defaultTTL;
-
-    /**
-     * distributed expiration time for DIFFERENT files
-     *
-     * 0 - 5 (%)
-     *
-     * @var int
-     */
-    protected $distributedExpiration;
-
-    /**
-     * Avoid stampede for one file by alter expire for each get
-     *
-     * 0 - 60 second
-     *
-     * @var int
-     */
-    protected $stampedeGap;
-
-    /**
      * @param  AdaptorInterface $adaptor
-     * @param  int              $defaultTTL             86400 sec (one day)
-     * @param  int              $distributedExpiration  0 - 5(%)
-     * @param  int              $stampedeGap            0 - 60 sec
+     * @param  array            $settings
      */
     public function __construct(
-        AdaptorInterface $adaptor,
-        int $defaultTTL = 86400,
-        int $distributedExpiration = 5,
-        int $stampedeGap = 60
+        ?AdaptorInterface $adaptor = NULL,
+        array $settings = []
     ) {
-        $this->adaptor = $adaptor;
-        $this->defaultTTL = $defaultTTL;
-        $this->distributedExpiration = $distributedExpiration;
-        $this->stampedeGap = $stampedeGap;
+        $this->adaptor = $adaptor ?? new FileAdaptor();
+        $this->settings = \array_merge($this->settings, $settings);
     }
 
     /**
@@ -83,28 +59,22 @@ class Cache implements CacheInterface
      */
     public function get($key, $default = NULL)
     {
-        // bypass the cache
-        if ($this->byPass) {
-            return $default;
-        }
-
         // verify the key first
         $key = $this->checkKey($key);
 
         // try read using adaptor
         try {
             list($res, $time) = $this->adaptor->get($key);
-        } catch (NotFoundException $e) {
+
+            // check expiration time
+            if ($this->checkTime($time)) {
+                return $this->unSerialize($res);
+            }
+
+            throw new NotFoundException("KEY $key Expired");
+        } catch (PhooleNotFoundException $e) {
             return $default;
         }
-
-        // verify expiration time
-        if ($this->checkTime($time)) {
-            return $this->unSerialize($res);
-        }
-
-        // default
-        return $default;
     }
 
     /**
@@ -180,15 +150,6 @@ class Cache implements CacheInterface
     }
 
     /**
-     * @param  bool $bypass  explicitly bypass the cache
-     * @return void
-     */
-    public function setByPass(bool $bypass = TRUE)
-    {
-        $this->byPass = $bypass;
-    }
-
-    /**
      * Check key is valid or not
      *
      * @param  string $key
@@ -200,16 +161,16 @@ class Cache implements CacheInterface
         try {
             return (string) $key;
         } catch (\Throwable $e) {
-            throw new class ($e->getMessage())
-                extends \InvalidArgumentException
-                implements InvalidArgumentException
-            {
-            };
+            throw new InvalidArgumentException($e->getMessage());
         }
     }
 
     /**
-     * check expiration time
+     * check expiration time, avoiding stampede situation on **ONE HOT** item
+     *
+     * if  item not expired but fall into the stampedeGap (60-120 seconds),
+     * then stampede percent (5%) chance to be considered stale and trigger
+     * generate new contend
      *
      * @param  int $time
      * @return bool
@@ -223,10 +184,10 @@ class Cache implements CacheInterface
             return TRUE;
         }
 
-        // just expired
-        if ($time > $now - $this->stampedeGap) {
-            // 5% chance expired (need rebuild cache)
-            return rand(0, 100) > 5;
+        // just expired, fall in stampedeGap
+        if ($time > $now - $this->settings['stampedeGap']) {
+            // 5% chance consider expired to build new cache
+            return rand(0, 100) > $this->settings['stampedePercent'];
         }
 
         // expired
@@ -235,6 +196,9 @@ class Cache implements CacheInterface
 
     /**
      * TTL +- 5% fluctuation
+     *
+     * distributedExpiration **WILL** add expiration fluctuation to **ALL** items
+     * which will avoid large amount of items expired at the same time
      *
      * @param  null|int|\DateInterval $ttl
      * @return int
@@ -246,10 +210,13 @@ class Cache implements CacheInterface
         }
 
         if (is_null($ttl)) {
-            $ttl = $this->defaultTTL;
+            $ttl = $this->settings['defaultTTL'];
         }
 
-        $rand = rand(-$this->distributedExpiration, $this->distributedExpiration);
+        // add fluctuation
+        $fluctuation = $this->settings['distributedPercent'];
+        $rand = rand(-$fluctuation, $fluctuation);
+
         return (int) round($ttl * (100 + $rand) / 100);
     }
 
