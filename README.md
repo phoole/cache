@@ -6,7 +6,7 @@
 [![Latest Stable Version](https://img.shields.io/github/v/release/phoole/cache)](https://packagist.org/packages/phoole/cache)
 [![License](https://img.shields.io/github/license/phoole/cache)]()
 
-A slim and standalone PSR-16 cache implementation for PHP
+Slim and full compatible PSR-16 library for PHP
 
 Installation
 ---
@@ -21,7 +21,7 @@ or add the following lines to your `composer.json`
 ```json
 {
     "require": {
-       "phoole/cache": "1.*"
+       "phoole/cache": "1.1.*"
     }
 }
 ```
