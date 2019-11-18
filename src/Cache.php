@@ -152,7 +152,7 @@ class Cache implements CacheInterface
     /**
      * Check key is valid or not
      *
-     * @param  string $key
+     * @param  mixed $key
      * @return string
      * @throws InvalidArgumentException
      */
