@@ -3,7 +3,7 @@
   "type": "library",
   "license": "Apache-2.0",
   "version": "1.1.0",
-  "description": "Slim and full compatible PSR-16 library for PHP",
+  "description": "Slim and full compatible PSR-16 cache library for PHP",
   "keywords": [
     "phoole",
     "library",
